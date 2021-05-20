@@ -1,193 +1,171 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "prototypes.h"
 
-typedef struct Node *link;
-struct Node
-{
-    int id;
-    link l, r;
-    int height;
-};
 
-link max(link Node)
-{
-    while (Node != NULL && Node->r != NULL)
-        Node = Node->r;
-    return Node;
-}
 
-link NEW(int id, link l, link r)
-{
-    link x = (link)malloc(sizeof(struct Node));
-    x->id = id;
-    x->l = l;
-    x->r = r;
-    x->height = 1;
-    return x;
-}
-
-int height(link h)
-{
+Directory* findFolder(link h, char* name){
     if (h == NULL)
-        return 0;
-    return h->height;
-}
-
-link rotL(link h)
-{
-    int hleft, hright, xleft, xright;
-    link x = h->r;
-    h->r = x->l;
-    x->l = h;
-    hleft = height(h->l);
-    hright = height(h->r);
-    h->height = hleft > hright ? hleft + 1 : hright + 1;
-    xleft = height(x->l);
-    xright = height(x->r);
-    x->height = xleft > xright ? xleft + 1 : xright + 1;
-    return x;
-}
-
-link rotR(link h)
-{
-    int hleft, hright, xleft, xright;
-    link x = h->l;
-    h->l = x->r;
-    x->r = h;
-    hleft = height(h->l);
-    hright = height(h->r);
-    h->height = hleft > hright ? hleft + 1 : hright + 1;
-    xleft = height(x->l);
-    xright = height(x->r);
-    x->height = xleft > xright ? xleft + 1 : xright + 1;
-    return x;
-}
-
-link rotLR(link h) /* rotação dupla esquerda direita */
-{
-    if (h == NULL)
-        return h;
-    h->l = rotL(h->l);
-    return rotR(h);
-}
-link rotRL(link h) /* rotação dupla direita esquerda */
-{
-    if (h == NULL)
-        return h;
-    h->r = rotR(h->r);
-    return rotL(h);
-}
-int balance(link h) /* balance factor*/
-{
-    if (h == NULL)
-        return 0;
-    return height(h->l) - height(h->r);
-}
-
-link AVLbalance(link h)
-{
-    int balanceFactor, hleft, hright;
-    if (h == NULL)
-        return h;
-    balanceFactor = balance(h);
-    if (balanceFactor > 1)
-    { /* mais peso para a esquerda */
-        if (balance(h->l) >= 0)
-            h = rotR(h);
-        else
-            h = rotLR(h);
-    }
-    else if (balanceFactor < -1)
-    { /* mais peso para a direita*/
-        if (balance(h->r) <= 0)
-            h = rotL(h);
-        else
-            h = rotRL(h);
-    }
+        return NULL;
+    else if (strcmp(name, h->directory->path) == 0)
+        return h->directory;
+    else if (strcmp(name, h->directory->path) < 0)
+        return findFolder(h->l, name);
     else
-    {
-        hleft = height(h->l);
-        hright = height(h->r);
-        h->height = hleft > hright ? hleft + 1 : hright + 1;
-    }
-    return h;
+        return findFolder(h->r, name);
 }
 
-link insertR(link h, int id)
-{
-    if (h == NULL)
-        return NEW(id, NULL, NULL);
-    if (id < h->id)
-        h->l = insertR(h->l, id);
-    else
-        h->r = insertR(h->r, id);
-    h = AVLbalance(h);
-    return h;
-}
-
-link deleteR(link h, int id)
-{
-    if (h == NULL)
-        return h;
-    else if (id < h->id)
-        h->l = deleteR(h->l, id);
-    else if (id > h->id)
-        h->r = deleteR(h->r, id);
-    else
-    {
-        if (h->l != NULL && h->r != NULL)
-        {
-            link aux = max(h->l);
-            int x;
-            x = h->id;
-            h->id = aux->id;
-            aux->id = x;
-
-            h->l = deleteR(h->l, aux->id);
+void setCommand(Directory* root){
+    char *token;
+    char buffer[65535 + 1];
+    char buffer_aux[65535 + 1]; 
+    char* buffer_ptr = buffer_aux; 
+    Directory* h;
+    Directory* newDir;
+    scanf("%s", buffer);
+    token = strtok(buffer, "/");
+        h = root;
+    while( token != NULL ) {
+        *buffer_ptr = '/'; 
+        ++buffer_ptr; 
+        strcpy(buffer_ptr, token); 
+        buffer_ptr += strlen(token); 
+        *buffer_ptr = '\0';
+        if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
+            h = findFolder(h->childrenABC, buffer_aux);
+        else{
+            newDir = (Directory*)malloc(sizeof(Directory));
+            newDir->path = (char*)malloc(strlen(buffer_aux));
+            strcpy(newDir->path, buffer_aux); 
+            newDir->childrenABC = NULL;
+            newDir->children123 = NULL;
+            newDir->value = NULL;
+            h->childrenABC = insertR(h->childrenABC, newDir);
+            h->children123 = insertLast(h->children123, newDir);
+            h = newDir;
         }
-        else
-        {
-            link aux = h;
-            if (h->l == NULL && h->r == NULL)
-                h = NULL;
-            else if (h->l == NULL)
-                h = h->r;
-            else
-                h = h->l;
-            /*deleteDirectory(aux->directory);*/
-            free(aux);
+        token = strtok(NULL, "/");
+   }
+    getchar();
+    fgets(buffer, 65536, stdin);
+    if (h->value != NULL)
+        free(h->value);
+    h->value = (char*)malloc(strlen(buffer));
+    strcpy(h->value, buffer);
+}
+
+void listChildren(Directory* root){
+    char *token;
+    char buffer[65535 + 1];
+    char buffer_aux[65535 + 1]; 
+    char* buffer_ptr = buffer_aux; 
+    Directory* h;
+    scanf("%s", buffer);
+    token = strtok(buffer, "/");
+    h = root;
+    while( token != NULL ) {
+        *buffer_ptr = '/'; 
+        ++buffer_ptr; 
+        strcpy(buffer_ptr, token); 
+        buffer_ptr += strlen(token); 
+        *buffer_ptr = '\0';
+        if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
+            h = findFolder(h->childrenABC, buffer_aux);
+        else{
+            printf("not found\n");
+            return;
         }
-    }
-    h = AVLbalance(h);
-    return h;
+        token = strtok(NULL, "/");
+   }
+   traverseABC(h->childrenABC);
 }
 
-void visit(link h)
-{
-    printf("%d\n", h->id);
+void findValue(Directory* root){
+    char *token;
+    char buffer[65535 + 1];
+    char buffer_aux[65535 + 1]; 
+    char* buffer_ptr = buffer_aux; 
+    Directory* h;
+    scanf("%s", buffer);
+    token = strtok(buffer, "/");
+    h = root;
+    while( token != NULL ) {
+        *buffer_ptr = '/'; 
+        ++buffer_ptr; 
+        strcpy(buffer_ptr, token); 
+        buffer_ptr += strlen(token); 
+        *buffer_ptr = '\0';
+        if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
+            h = findFolder(h->childrenABC, buffer_aux);
+        else{
+            printf("not found\n");
+            return;
+        }
+        token = strtok(NULL, "/");
+   }
+   if (h->value != NULL)
+        printf("%s", h->value);
+    else
+        printf("no data\n");
 }
 
-void traverse(link h)
-{
-    if (h == NULL)
+void printEverything(Directory* directory){
+    LLNode* h;
+    if (directory == NULL)
         return;
-    traverse(h->l);
-    visit(h);
-    traverse(h->r);
+    for (h = directory->children123; h != NULL; h = h->next){
+        printf("%s\n", h->directory->path);
+        printEverything(h->directory);
+    }
+}
+
+void printHelp(){
+    puts(
+        "help: Imprime os comandos disponíveis.\n"
+        "quit: Termina o programa.\n"
+        "set: Adiciona ou modifica o valor a armazenar.\n"
+        "print: Imprime todos os caminhos e valores.\n"
+        "find: Imprime o valor armazenado.\n"
+        "list: Lista todos os componentes de um caminho\n"
+        "search: Procura o caminho de um dado valor.\n"
+        "delete: Apaga um caminho e todos os subcaminhos.\n"
+    );
 }
 
 int main()
 {
-    link treeHead;
-    treeHead = NEW(20, NULL, NULL);
-    treeHead = insertR(treeHead, 10);
-    treeHead = insertR(treeHead, 30);
-    treeHead = insertR(treeHead, 25);
-    treeHead = insertR(treeHead, 5);
-    treeHead = insertR(treeHead, 15);
-    treeHead = insertR(treeHead, 1);
-    treeHead = insertR(treeHead, 16);
-    traverse(treeHead);
+
+    int run = 1;
+    char command[7];
+    Directory* root = (Directory*)malloc(sizeof(Directory));
+    root->value = NULL;
+    root->children123 = NULL;
+    root->childrenABC = NULL;
+    root->path = NULL;
+    while (run == 1){
+        scanf("%s", command);
+        getchar();
+        if (strcmp(command, "quit") == 0){
+            run = 0;
+            
+        }
+        else if (strcmp(command, "help") == 0)
+            printHelp();
+        
+        else if (strcmp(command, "set") == 0)
+            setCommand(root);
+
+        else if (strcmp(command, "print") == 0)
+            printEverything(root);
+        
+        else if (strcmp(command, "find") == 0)
+             findValue(root);
+
+        else if (strcmp(command, "list") == 0)
+            listChildren(root);
+        
+        
+    }
     return 0;
 }
