@@ -3,7 +3,6 @@
 #include <string.h>
 #include "prototypes.h"
 
-
 link max(link Node)
 {
     while (Node != NULL && Node->r != NULL)
@@ -11,7 +10,7 @@ link max(link Node)
     return Node;
 }
 
-link NEW(Directory* directory, link l, link r)
+link NEW(Directory *directory, link l, link r)
 {
     link x = (link)malloc(sizeof(struct Node));
     x->directory = directory;
@@ -108,10 +107,10 @@ link AVLbalance(link h)
     return h;
 }
 
-link insertR(link h, Directory* directory)
-{ 
+link insertR(link h, Directory *directory)
+{
     if (h == NULL)
-    return NEW(directory, NULL, NULL);
+        return NEW(directory, NULL, NULL);
     if (strcmp(directory->path, h->directory->path) < 0)
         h->l = insertR(h->l, directory);
     else if (strcmp(directory->path, h->directory->path) > 0)
@@ -120,7 +119,7 @@ link insertR(link h, Directory* directory)
     return h;
 }
 
-link deleteR(link h, Directory* directory)
+link deleteR(link h, Directory *directory)
 {
     if (h == NULL)
         return h;
@@ -133,7 +132,7 @@ link deleteR(link h, Directory* directory)
         if (h->l != NULL && h->r != NULL)
         {
             link aux = max(h->l);
-            Directory* x;
+            Directory *x;
             x = h->directory;
             h->directory = aux->directory;
             aux->directory = x;
@@ -142,30 +141,42 @@ link deleteR(link h, Directory* directory)
         }
         else
         {
-            link aux = h;
             if (h->l == NULL && h->r == NULL)
                 h = NULL;
             else if (h->l == NULL)
                 h = h->r;
             else
                 h = h->l;
-            free(aux->directory);
-            free(aux);
         }
     }
     h = AVLbalance(h);
     return h;
 }
 
-void visitABC(Directory* directory){
-    printf("%s\n", directory->path);
+void visitABC(Directory *directory, int i)
+{
+    char *folder = directory->path;
+    folder += i + 1;
+    printf("%s\n", folder);
 }
 
-void traverseABC(link h){
+void traverseABC(link h, int i)
+{
     if (h == NULL)
         return;
-    traverseABC(h->l);
-    visitABC(h->directory);
-    traverseABC(h->r);
+    traverseABC(h->l, i);
+    visitABC(h->directory, i);
+    traverseABC(h->r, i);
 }
 
+void freeAVL(link head)
+{
+    link aux, aux2;
+    if (head == NULL)
+        return;
+    aux = head->l;
+    aux2 = head->r;
+    free(head);
+    freeAVL(aux);
+    freeAVL(aux2);
+}
