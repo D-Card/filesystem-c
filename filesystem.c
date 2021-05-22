@@ -126,8 +126,6 @@ void findValue(Directory *root)
 void printEverything(Directory *directory)
 {
     LLNode *h;
-    /* if (directory == NULL)
-        return; */
     for (h = directory->children123; h != NULL; h = h->next)
     {
         if (h->directory->value != NULL)
@@ -227,6 +225,39 @@ void delete (Directory *root)
     }
 }
 
+int searchR(Directory *directory, char *keyword)
+{
+    LLNode *h;
+    for (h = directory->children123; h != NULL; h = h->next)
+    {
+        if (h->directory->value != NULL && !strcmp(h->directory->value, keyword))
+        {
+            printf("%s\n", h->directory->path);
+            return 1;
+        }
+        if (searchR(h->directory, keyword))
+            return 1;
+    }
+    return 0;
+}
+
+void search(Directory *directory)
+{
+    char *keyword;
+    char buffer[65535 + 1];
+    getchar();
+    fgets(buffer, 65536, stdin);
+    keyword = (char *)malloc(strlen(buffer) + 1);
+    strcpy(keyword, buffer);
+    if (searchR(directory, keyword))
+    {
+        free(keyword);
+        return;
+    }
+    printf("not found\n");
+    free(keyword);
+}
+
 int main()
 {
 
@@ -261,8 +292,8 @@ int main()
         else if (strcmp(command, "list") == 0)
             listChildren(root);
 
-        /* else if (strcmp(command, "search") == 0)
-            search();*/
+        else if (strcmp(command, "search") == 0)
+            search(root);
 
         else if (strcmp(command, "delete") == 0)
             delete (root);
