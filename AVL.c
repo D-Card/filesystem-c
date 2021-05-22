@@ -141,12 +141,14 @@ link deleteR(link h, Directory *directory)
         }
         else
         {
+            link aux = h;
             if (h->l == NULL && h->r == NULL)
                 h = NULL;
             else if (h->l == NULL)
                 h = h->r;
             else
                 h = h->l;
+            free(aux);
         }
     }
     h = AVLbalance(h);

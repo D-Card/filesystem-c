@@ -35,6 +35,7 @@ LLNode *deleteLL(LLNode *head, char *text)
                 head = t->next;
             else
                 prev->next = t->next;
+            free(t);
             break;
         }
     }

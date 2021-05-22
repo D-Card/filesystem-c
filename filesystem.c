@@ -204,15 +204,19 @@ void delete (Directory *root)
         for (aux = h->children123; aux != NULL; aux = aux->next)
         {
             deleteDir(aux->directory);
-            aux->directory->parent->childrenABC = deleteR(aux->directory->parent->childrenABC, aux->directory);
-            aux->directory->parent->children123 = deleteLL(aux->directory->parent->children123, aux->directory->path);
             free(aux->directory->value);
             free(aux->directory->path);
             free(aux->directory);
         }
+        if (h->childrenABC != NULL)
+        {
+            freeAVL(h->childrenABC);
+            h->childrenABC = NULL;
+            freeLL(h->children123);
+            h->children123 = NULL;
+        }
     }
     else
-
     {
         deleteDir(h);
         h->parent->childrenABC = deleteR(h->parent->childrenABC, h);
