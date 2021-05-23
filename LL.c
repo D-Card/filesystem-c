@@ -1,14 +1,9 @@
-/*
- * File:  LL.c
- * Author:  Diogo Cardoso 99209
- * Description: File where the Linked list struct related functions are defined.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "prototypes.h"
 
+/* creates a new node */
 LLNode* newLLNode(Directory *directory){
     LLNode *newNode = (LLNode*)malloc(sizeof(LLNode));
     newNode->directory = directory;
@@ -17,6 +12,7 @@ LLNode* newLLNode(Directory *directory){
     return newNode;
 }
 
+/* inserts a node at the end of the list */
 LLNode* insertLast(LLNode *head, Directory *directory){
     LLNode *aux;
     if (head == NULL)
@@ -27,6 +23,7 @@ LLNode* insertLast(LLNode *head, Directory *directory){
     return head;
 }
 
+/* deletes specified node from list */
 LLNode* deleteLL(LLNode *head, Directory* directory){
     LLNode *aux, *prev;
     for (aux = head, prev = NULL; aux != NULL;
@@ -43,6 +40,7 @@ LLNode* deleteLL(LLNode *head, Directory* directory){
     return head;
 }
 
+/* frees all nodes in LL */
 void freeLL(LLNode *head){
     LLNode *aux;
     if (head == NULL)

@@ -1,15 +1,9 @@
-/*
- * File:  AVL.c
- * Author:  Diogo Cardoso 99209
- * Description: File where the AVL struct related functions are defined.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "prototypes.h"
 
-
+/* creates new node */
 AVLNode* newAVLNode(Directory *directory, AVLNode *l, AVLNode *r){
     AVLNode *newNode = (AVLNode *)malloc(sizeof(AVLNode));
     newNode->directory = directory;
@@ -19,19 +13,22 @@ AVLNode* newAVLNode(Directory *directory, AVLNode *l, AVLNode *r){
     return newNode;
 }
 
+/* returns node height */
 int height(AVLNode *node){
     if (node == NULL)
         return 0;
     return node->height;
 }
 
-AVLNode* max(AVLNode *node)
+/* returns the most right node from head */
+AVLNode* max(AVLNode *head)
 {
-    while (node != NULL && node->r != NULL)
-        node = node->r;
-    return node;
+    while (head != NULL && head->r != NULL)
+        head = head->r;
+    return head;
 }
 
+/* performs a left rotation on node */
 AVLNode* rotL(AVLNode *node){
     int nodeleft, noderight, auxleft, auxright;
     AVLNode * aux = node->r;
@@ -46,6 +43,7 @@ AVLNode* rotL(AVLNode *node){
     return aux;
 }
 
+/* performs a right rotation on node */
 AVLNode* rotR(AVLNode *node){
     int nodeleft, noderight, auxleft, auxright;
     AVLNode* aux = node->l;
@@ -60,24 +58,30 @@ AVLNode* rotR(AVLNode *node){
     return aux;
 }
 
+/* performs a left-right rotation on node */
 AVLNode* rotLR(AVLNode *node){
     if (node == NULL)
         return node;
     node->l = rotL(node->l);
     return rotR(node);
 }
+
+/* performs a right-left rotation on node */
 AVLNode* rotRL(AVLNode *node){
     if (node == NULL)
         return node;
     node->r = rotR(node->r);
     return rotL(node);
 }
+
+/* returns node balance */
 int balance(AVLNode *node){
     if (node == NULL)
         return 0;
     return height(node->l) - height(node->r);
 }
 
+/* balances AVL */
 AVLNode* AVLbalance(AVLNode *node){
     int balanceFactor, nodeleft, noderight;
     if (node == NULL)
@@ -103,6 +107,7 @@ AVLNode* AVLbalance(AVLNode *node){
     return node;
 }
 
+/* inserts node in AVL */
 AVLNode* insertR(AVLNode *node, Directory *directory){
     if (node == NULL)
         return newAVLNode(directory, NULL, NULL);
@@ -114,6 +119,7 @@ AVLNode* insertR(AVLNode *node, Directory *directory){
     return node;
 }
 
+/* deletes node from AVL */
 AVLNode* deleteR(AVLNode *node, Directory *directory){
     if (node == NULL)
         return node;
@@ -145,21 +151,24 @@ AVLNode* deleteR(AVLNode *node, Directory *directory){
     return node;
 }
 
-void visitABC(Directory *directory, int i)
+/* prints directory path */
+void visit(Directory *directory, int i)
 {
     char *folder = directory->path;
     folder += i + 1;
     printf("%s\n", folder);
 }
 
-void traverseABC(AVLNode *node, int i){
+/* prints all nodes' path in-order */
+void traverse(AVLNode *node, int i){
     if (node == NULL)
         return;
-    traverseABC(node->l, i);
-    visitABC(node->directory, i);
-    traverseABC(node->r, i);
+    traverse(node->l, i);
+    visit(node->directory, i);
+    traverse(node->r, i);
 }
 
+/* frees all AVL nodes */
 void freeAVL(AVLNode *head){
     AVLNode *aux,*aux2;
     if (head == NULL)

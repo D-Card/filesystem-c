@@ -1,9 +1,3 @@
-/*
- * File:  prototypes.h
- * Author:  Diogo Cardoso 99209
- * Description: File where all functions' prototypes + structs are declared.
-*/
-
 /* Structs */
 typedef struct AVLNode AVLNode;
 typedef struct Directory Directory;
@@ -31,7 +25,7 @@ struct AVLNode{
 /* AVL prototypes */
 AVLNode* insertR(AVLNode*, Directory*);
 AVLNode* deleteR(AVLNode*, Directory*);
-void traverseABC(AVLNode*, int);
+void traverse(AVLNode*, int);
 void freeAVL(AVLNode*);
 
 /* Linked list prototypes */
@@ -51,3 +45,4 @@ void deleteDir(Directory*);
 void delete (Directory*);
 int searchR(Directory*, char*);
 void search(Directory*);
+Directory* getDir(Directory*);
