@@ -1,158 +1,148 @@
+/*
+ * File:  AVL.c
+ * Author:  Diogo Cardoso 99209
+ * Description: File where the AVL struct related functions are defined.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "prototypes.h"
 
-link max(link Node)
-{
-    while (Node != NULL && Node->r != NULL)
-        Node = Node->r;
-    return Node;
+
+AVLNode* newAVLNode(Directory *directory, AVLNode *l, AVLNode *r){
+    AVLNode *newNode = (AVLNode *)malloc(sizeof(AVLNode));
+    newNode->directory = directory;
+    newNode->l = l;
+    newNode->r = r;
+    newNode->height = 1;
+    return newNode;
 }
 
-link NEW(Directory *directory, link l, link r)
-{
-    link x = (link)malloc(sizeof(struct Node));
-    x->directory = directory;
-    x->l = l;
-    x->r = r;
-    x->height = 1;
-    return x;
-}
-
-int height(link h)
-{
-    if (h == NULL)
+int height(AVLNode *node){
+    if (node == NULL)
         return 0;
-    return h->height;
+    return node->height;
 }
 
-link rotL(link h)
+AVLNode* max(AVLNode *node)
 {
-    int hleft, hright, xleft, xright;
-    link x = h->r;
-    h->r = x->l;
-    x->l = h;
-    hleft = height(h->l);
-    hright = height(h->r);
-    h->height = hleft > hright ? hleft + 1 : hright + 1;
-    xleft = height(x->l);
-    xright = height(x->r);
-    x->height = xleft > xright ? xleft + 1 : xright + 1;
-    return x;
+    while (node != NULL && node->r != NULL)
+        node = node->r;
+    return node;
 }
 
-link rotR(link h)
-{
-    int hleft, hright, xleft, xright;
-    link x = h->l;
-    h->l = x->r;
-    x->r = h;
-    hleft = height(h->l);
-    hright = height(h->r);
-    h->height = hleft > hright ? hleft + 1 : hright + 1;
-    xleft = height(x->l);
-    xright = height(x->r);
-    x->height = xleft > xright ? xleft + 1 : xright + 1;
-    return x;
+AVLNode* rotL(AVLNode *node){
+    int nodeleft, noderight, auxleft, auxright;
+    AVLNode * aux = node->r;
+    node->r = aux->l;
+    aux->l = node;
+    nodeleft = height(node->l);
+    noderight = height(node->r);
+    node->height = nodeleft > noderight ? nodeleft + 1 : noderight + 1;
+    auxleft = height(aux->l);
+    auxright = height(aux->r);
+    aux->height = auxleft > auxright ? auxleft + 1 : auxright + 1;
+    return aux;
 }
 
-link rotLR(link h) /* rotação dupla esquerda direita */
-{
-    if (h == NULL)
-        return h;
-    h->l = rotL(h->l);
-    return rotR(h);
+AVLNode* rotR(AVLNode *node){
+    int nodeleft, noderight, auxleft, auxright;
+    AVLNode* aux = node->l;
+    node->l = aux->r;
+    aux->r = node;
+    nodeleft = height(node->l);
+    noderight = height(node->r);
+    node->height = nodeleft > noderight ? nodeleft + 1 : noderight + 1;
+    auxleft = height(aux->l);
+    auxright = height(aux->r);
+    aux->height = auxleft > auxright ? auxleft + 1 : auxright + 1;
+    return aux;
 }
-link rotRL(link h) /* rotação dupla direita esquerda */
-{
-    if (h == NULL)
-        return h;
-    h->r = rotR(h->r);
-    return rotL(h);
+
+AVLNode* rotLR(AVLNode *node){
+    if (node == NULL)
+        return node;
+    node->l = rotL(node->l);
+    return rotR(node);
 }
-int balance(link h) /* balance factor*/
-{
-    if (h == NULL)
+AVLNode* rotRL(AVLNode *node){
+    if (node == NULL)
+        return node;
+    node->r = rotR(node->r);
+    return rotL(node);
+}
+int balance(AVLNode *node){
+    if (node == NULL)
         return 0;
-    return height(h->l) - height(h->r);
+    return height(node->l) - height(node->r);
 }
 
-link AVLbalance(link h)
-{
-    int balanceFactor, hleft, hright;
-    if (h == NULL)
-        return h;
-    balanceFactor = balance(h);
-    if (balanceFactor > 1)
-    { /* mais peso para a esquerda */
-        if (balance(h->l) >= 0)
-            h = rotR(h);
+AVLNode* AVLbalance(AVLNode *node){
+    int balanceFactor, nodeleft, noderight;
+    if (node == NULL)
+        return node;
+    balanceFactor = balance(node);
+    if (balanceFactor > 1){ 
+        if (balance(node->l) >= 0)
+            node = rotR(node);
         else
-            h = rotLR(h);
+            node = rotLR(node);
     }
-    else if (balanceFactor < -1)
-    { /* mais peso para a direita*/
-        if (balance(h->r) <= 0)
-            h = rotL(h);
+    else if (balanceFactor < -1){ 
+        if (balance(node->r) <= 0)
+            node = rotL(node);
         else
-            h = rotRL(h);
+            node = rotRL(node);
     }
-    else
-    {
-        hleft = height(h->l);
-        hright = height(h->r);
-        h->height = hleft > hright ? hleft + 1 : hright + 1;
+    else{
+        nodeleft = height(node->l);
+        noderight = height(node->r);
+        node->height = nodeleft > noderight ? nodeleft + 1 : noderight + 1;
     }
-    return h;
+    return node;
 }
 
-link insertR(link h, Directory *directory)
-{
-    if (h == NULL)
-        return NEW(directory, NULL, NULL);
-    if (strcmp(directory->path, h->directory->path) < 0)
-        h->l = insertR(h->l, directory);
-    else if (strcmp(directory->path, h->directory->path) > 0)
-        h->r = insertR(h->r, directory);
-    h = AVLbalance(h);
-    return h;
+AVLNode* insertR(AVLNode *node, Directory *directory){
+    if (node == NULL)
+        return newAVLNode(directory, NULL, NULL);
+    if (strcmp(directory->path, node->directory->path) < 0)
+        node->l = insertR(node->l, directory);
+    else if (strcmp(directory->path, node->directory->path) > 0)
+        node->r = insertR(node->r, directory);
+    node = AVLbalance(node);
+    return node;
 }
 
-link deleteR(link h, Directory *directory)
-{
-    if (h == NULL)
-        return h;
-    else if (strcmp(directory->path, h->directory->path) < 0)
-        h->l = deleteR(h->l, directory);
-    else if (strcmp(directory->path, h->directory->path) > 0)
-        h->r = deleteR(h->r, directory);
-    else
-    {
-        if (h->l != NULL && h->r != NULL)
-        {
-            link aux = max(h->l);
-            Directory *x;
-            x = h->directory;
-            h->directory = aux->directory;
-            aux->directory = x;
-
-            h->l = deleteR(h->l, aux->directory);
+AVLNode* deleteR(AVLNode *node, Directory *directory){
+    if (node == NULL)
+        return node;
+    else if (strcmp(directory->path, node->directory->path) < 0)
+        node->l = deleteR(node->l, directory);
+    else if (strcmp(directory->path, node->directory->path) > 0)
+        node->r = deleteR(node->r, directory);
+    else{
+        if (node->l != NULL && node->r != NULL){
+            AVLNode *node_aux = max(node->l);
+            Directory *dir_aux;
+            dir_aux = node->directory;
+            node->directory = node_aux->directory;
+            node_aux->directory = dir_aux;
+            node->l = deleteR(node->l, node_aux->directory);
         }
-        else
-        {
-            link aux = h;
-            if (h->l == NULL && h->r == NULL)
-                h = NULL;
-            else if (h->l == NULL)
-                h = h->r;
+        else{
+            AVLNode * node_aux = node;
+            if (node->l == NULL && node->r == NULL)
+                node = NULL;
+            else if (node->l == NULL)
+                node = node->r;
             else
-                h = h->l;
-            free(aux);
+                node = node->l;
+            free(node_aux);
         }
     }
-    h = AVLbalance(h);
-    return h;
+    node = AVLbalance(node);
+    return node;
 }
 
 void visitABC(Directory *directory, int i)
@@ -162,18 +152,16 @@ void visitABC(Directory *directory, int i)
     printf("%s\n", folder);
 }
 
-void traverseABC(link h, int i)
-{
-    if (h == NULL)
+void traverseABC(AVLNode *node, int i){
+    if (node == NULL)
         return;
-    traverseABC(h->l, i);
-    visitABC(h->directory, i);
-    traverseABC(h->r, i);
+    traverseABC(node->l, i);
+    visitABC(node->directory, i);
+    traverseABC(node->r, i);
 }
 
-void freeAVL(link head)
-{
-    link aux, aux2;
+void freeAVL(AVLNode *head){
+    AVLNode *aux,*aux2;
     if (head == NULL)
         return;
     aux = head->l;

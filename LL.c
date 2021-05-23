@@ -1,49 +1,49 @@
+/*
+ * File:  LL.c
+ * Author:  Diogo Cardoso 99209
+ * Description: File where the Linked list struct related functions are defined.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "prototypes.h"
 
-LLNode *NEWNode(Directory *directory)
-{
-    LLNode *x = (LLNode *)malloc(sizeof(LLNode));
-    x->directory = directory;
-    x->next = NULL;
-    x->prev = NULL;
-    return x;
+LLNode* newLLNode(Directory *directory){
+    LLNode *newNode = (LLNode*)malloc(sizeof(LLNode));
+    newNode->directory = directory;
+    newNode->next = NULL;
+    newNode->prev = NULL;
+    return newNode;
 }
 
-LLNode *insertLast(LLNode *head, Directory *directory)
-{
-    LLNode *x;
+LLNode* insertLast(LLNode *head, Directory *directory){
+    LLNode *aux;
     if (head == NULL)
-        return NEWNode(directory);
-    for (x = head; x->next != NULL; x = x->next)
+        return newLLNode(directory);
+    for (aux = head; aux->next != NULL; aux = aux->next)
         ;
-    x->next = NEWNode(directory);
+    aux->next = newLLNode(directory);
     return head;
 }
 
-LLNode *deleteLL(LLNode *head, char *text)
-{
-    LLNode *t, *prev;
-    for (t = head, prev = NULL; t != NULL;
-         prev = t, t = t->next)
-    {
-        if (strcmp(t->directory->path, text) == 0)
-        {
-            if (t == head)
-                head = t->next;
+LLNode* deleteLL(LLNode *head, Directory* directory){
+    LLNode *aux, *prev;
+    for (aux = head, prev = NULL; aux != NULL;
+         prev = aux, aux = aux->next){
+        if (strcmp(aux->directory->path, directory->path) == 0){
+            if (aux == head)
+                head = aux->next;
             else
-                prev->next = t->next;
-            free(t);
+                prev->next = aux->next;
+            free(aux);
             break;
         }
     }
     return head;
 }
 
-void freeLL(LLNode *head)
-{
+void freeLL(LLNode *head){
     LLNode *aux;
     if (head == NULL)
         return;

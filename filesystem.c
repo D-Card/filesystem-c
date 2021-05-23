@@ -1,22 +1,73 @@
+/*
+ * File: filesystem.c
+ * Author: Diogo Cardoso 99209
+ * Description: A program which recreates a file system with a default set
+ * of commands.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "prototypes.h"
+#include "constants.h"
 
-Directory *findFolder(link h, char *name)
-{
-    if (h == NULL)
-        return NULL;
-    else if (strcmp(name, h->directory->path) == 0)
-        return h->directory;
-    else if (strcmp(name, h->directory->path) < 0)
-        return findFolder(h->l, name);
-    else
-        return findFolder(h->r, name);
+
+int main(){
+    int run = 1;
+    char command[7];
+    Directory *root = setupRoot();
+    while (run == 1){
+        scanf("%s", command);
+        if (strcmp(command, "help") == 0)
+            printHelp();
+
+        else if (strcmp(command, "quit") == 0){
+            run = 0;
+            deleteDir(root);
+            free(root);
+        }    
+        else if (strcmp(command, "set") == 0)
+            setDir(root);
+
+        else if (strcmp(command, "print") == 0)
+            printEverything(root);
+
+        else if (strcmp(command, "find") == 0)
+            findValue(root);
+
+        else if (strcmp(command, "list") == 0)
+            listChildren(root);
+
+        else if (strcmp(command, "search") == 0)
+            search(root);
+
+        else if (strcmp(command, "delete") == 0)
+            delete(root);
+    }
+    return 0;
 }
 
-void setCommand(Directory *root)
-{
+Directory* setupRoot(){
+    Directory* root = (Directory *)malloc(sizeof(Directory));
+    root->value = NULL;
+    root->children123 = NULL;
+    root->childrenABC = NULL;
+    root->path = NULL;
+    return root;
+}
+
+void printHelp(){
+    puts(HELP_DSCP
+        QUIT_DSCP   
+        SET_DSCP 
+        PRINT_DSCP 
+        FIND_DSCP 
+        LIST_DSCP
+        SEARCH_DSCP 
+        DELETE_DSCP);
+}
+
+void setDir(Directory *root){
     char *token;
     char buffer[65535 + 1];
     char buffer_aux[65535 + 1];
@@ -27,8 +78,7 @@ void setCommand(Directory *root)
     scanf("%s", buffer);
     token = strtok(buffer, "/");
     h = root;
-    while (token != NULL)
-    {
+    while (token != NULL){
         *buffer_ptr = '/';
         ++buffer_ptr;
         strcpy(buffer_ptr, token);
@@ -36,8 +86,7 @@ void setCommand(Directory *root)
         *buffer_ptr = '\0';
         if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
             h = findFolder(h->childrenABC, buffer_aux);
-        else
-        {
+        else{
             newDir = (Directory *)malloc(sizeof(Directory));
             newDir->path = (char *)malloc(strlen(buffer_aux) + 1);
             strcpy(newDir->path, buffer_aux);
@@ -59,39 +108,29 @@ void setCommand(Directory *root)
     strcpy(h->value, buffer);
 }
 
-void listChildren(Directory *root)
-{
-    char *token;
-    char buffer[65535 + 1];
-    char buffer_aux[65535 + 1];
-    char *buffer_ptr = buffer_aux;
-    Directory *h;
-    buffer_aux[0] = '\0';
-    token = NULL;
-    if (scanf("%*[ ]%s", buffer))
-        token = strtok(buffer, "/");
-    h = root;
-    while (token != NULL)
-    {
-        *buffer_ptr = '/';
-        ++buffer_ptr;
-        strcpy(buffer_ptr, token);
-        buffer_ptr += strlen(token);
-        *buffer_ptr = '\0';
-        if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
-            h = findFolder(h->childrenABC, buffer_aux);
-        else
-        {
-            printf("not found\n");
-            return;
-        }
-        token = strtok(NULL, "/");
-    }
-    traverseABC(h->childrenABC, strlen(buffer_aux));
+Directory* findFolder(AVLNode *h, char *name){
+    if (h == NULL)
+        return NULL;
+    else if (strcmp(name, h->directory->path) == 0)
+        return h->directory;
+    else if (strcmp(name, h->directory->path) < 0)
+        return findFolder(h->l, name);
+    else
+        return findFolder(h->r, name);
 }
 
-void findValue(Directory *root)
-{
+void printEverything(Directory *root){
+    LLNode *aux;
+    for (aux = root->children123; aux != NULL; aux = aux->next){
+        if (aux->directory->value != NULL){
+            printf("%s ", aux->directory->path);
+            printf("%s", aux->directory->value);
+        }
+        printEverything(aux->directory);
+    }
+}
+
+void findValue(Directory *root){
     char *token;
     char buffer[65535 + 1];
     char buffer_aux[65535 + 1];
@@ -101,8 +140,7 @@ void findValue(Directory *root)
     scanf("%s", buffer);
     token = strtok(buffer, "/");
     h = root;
-    while (token != NULL)
-    {
+    while (token != NULL){
         *buffer_ptr = '/';
         ++buffer_ptr;
         strcpy(buffer_ptr, token);
@@ -110,8 +148,7 @@ void findValue(Directory *root)
         *buffer_ptr = '\0';
         if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
             h = findFolder(h->childrenABC, buffer_aux);
-        else
-        {
+        else{
             printf("not found\n");
             return;
         }
@@ -123,53 +160,78 @@ void findValue(Directory *root)
         printf("no data\n");
 }
 
-void printEverything(Directory *directory)
-{
-    LLNode *h;
-    for (h = directory->children123; h != NULL; h = h->next)
-    {
-        if (h->directory->value != NULL)
-        {
-            printf("%s ", h->directory->path);
-            printf("%s", h->directory->value);
+void listChildren(Directory *root){
+    char *token;
+    char buffer[65535 + 1];
+    char buffer_aux[65535 + 1];
+    char *buffer_ptr = buffer_aux;
+    Directory *h;
+    buffer_aux[0] = '\0';
+    token = NULL;
+    if (scanf("%*[ ]%s", buffer))
+        token = strtok(buffer, "/");
+    h = root;
+    while (token != NULL){
+        *buffer_ptr = '/';
+        ++buffer_ptr;
+        strcpy(buffer_ptr, token);
+        buffer_ptr += strlen(token);
+        *buffer_ptr = '\0';
+        if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
+            h = findFolder(h->childrenABC, buffer_aux);
+        else{
+            printf("not found\n");
+            return;
         }
-        printEverything(h->directory);
+        token = strtok(NULL, "/");
     }
+    traverseABC(h->childrenABC, strlen(buffer_aux));
 }
 
-void printHelp()
-{
-    puts(
-        "help: Imprime os comandos disponíveis.\n"
-        "quit: Termina o programa.\n"
-        "set: Adiciona ou modifica o valor a armazenar.\n"
-        "print: Imprime todos os caminhos e valores.\n"
-        "find: Imprime o valor armazenado.\n"
-        "list: Lista todos os componentes imediatos de um sub-caminho.\n"
-        "search: Procura o caminho dado um valor.\n"
-        "delete: Apaga um caminho e todos os subcaminhos.");
-}
-
-void deleteDir(Directory *directory)
-{
+int searchR(Directory *directory, char *keyword){
     LLNode *h;
-    for (h = directory->children123; h != NULL; h = h->next)
-    {
+    for (h = directory->children123; h != NULL; h = h->next){
+        if (h->directory->value != NULL && !strcmp(h->directory->value, keyword)){
+            printf("%s\n", h->directory->path);
+            return 1;
+        }
+        if (searchR(h->directory, keyword))
+            return 1;
+    }
+    return 0;
+}
+
+void search(Directory *directory){
+    char *keyword;
+    char buffer[65535 + 1];
+    getchar();
+    fgets(buffer, 65536, stdin);
+    keyword = (char *)malloc(strlen(buffer) + 1);
+    strcpy(keyword, buffer);
+    if (searchR(directory, keyword)){
+        free(keyword);
+        return;
+    }
+    printf("not found\n");
+    free(keyword);
+}
+
+void deleteDir(Directory *directory){
+    LLNode *h;
+    for (h = directory->children123; h != NULL; h = h->next){
         if (h->directory->children123 != NULL)
             deleteDir(h->directory);
         free(h->directory->path);
         free(h->directory->value);
         free(h->directory);
     }
-    if (directory->childrenABC != NULL)
-    {
+    if (directory->childrenABC != NULL){
         freeAVL(directory->childrenABC);
         freeLL(directory->children123);
     }
 }
 
-void delete (Directory *root)
-{
+void delete (Directory *root){
     char *token;
     char buffer[65535 + 1];
     char buffer_aux[65535 + 1];
@@ -190,113 +252,32 @@ void delete (Directory *root)
         *buffer_ptr = '\0';
         if (h->childrenABC != NULL && findFolder(h->childrenABC, buffer_aux) != NULL)
             h = findFolder(h->childrenABC, buffer_aux);
-        else
-        {
+        else{
             printf("not found\n");
             return;
         }
         token = strtok(NULL, "/");
     }
-    if (h == root)
-    {
-        for (aux = h->children123; aux != NULL; aux = aux->next)
-        {
+    if (h == root){
+        for (aux = h->children123; aux != NULL; aux = aux->next){
             deleteDir(aux->directory);
             free(aux->directory->value);
             free(aux->directory->path);
             free(aux->directory);
         }
-        if (h->childrenABC != NULL)
-        {
+        if (h->childrenABC != NULL){
             freeAVL(h->childrenABC);
             h->childrenABC = NULL;
             freeLL(h->children123);
             h->children123 = NULL;
         }
     }
-    else
-    {
+    else{
         deleteDir(h);
         h->parent->childrenABC = deleteR(h->parent->childrenABC, h);
-        h->parent->children123 = deleteLL(h->parent->children123, h->path);
+        h->parent->children123 = deleteLL(h->parent->children123, h);
         free(h->value);
         free(h->path);
         free(h);
     }
-}
-
-int searchR(Directory *directory, char *keyword)
-{
-    LLNode *h;
-    for (h = directory->children123; h != NULL; h = h->next)
-    {
-        if (h->directory->value != NULL && !strcmp(h->directory->value, keyword))
-        {
-            printf("%s\n", h->directory->path);
-            return 1;
-        }
-        if (searchR(h->directory, keyword))
-            return 1;
-    }
-    return 0;
-}
-
-void search(Directory *directory)
-{
-    char *keyword;
-    char buffer[65535 + 1];
-    getchar();
-    fgets(buffer, 65536, stdin);
-    keyword = (char *)malloc(strlen(buffer) + 1);
-    strcpy(keyword, buffer);
-    if (searchR(directory, keyword))
-    {
-        free(keyword);
-        return;
-    }
-    printf("not found\n");
-    free(keyword);
-}
-
-int main()
-{
-
-    int run = 1;
-    char command[7];
-    Directory *root = (Directory *)malloc(sizeof(Directory));
-    root->value = NULL;
-    root->children123 = NULL;
-    root->childrenABC = NULL;
-    root->path = NULL;
-    while (run == 1)
-    {
-        scanf("%s", command);
-        if (strcmp(command, "quit") == 0)
-        {
-            run = 0;
-            deleteDir(root);
-            free(root);
-        }
-        else if (strcmp(command, "help") == 0)
-            printHelp();
-
-        else if (strcmp(command, "set") == 0)
-            setCommand(root);
-
-        else if (strcmp(command, "print") == 0)
-            printEverything(root);
-
-        else if (strcmp(command, "find") == 0)
-            findValue(root);
-
-        else if (strcmp(command, "list") == 0)
-            listChildren(root);
-
-        else if (strcmp(command, "search") == 0)
-            search(root);
-
-        else if (strcmp(command, "delete") == 0)
-            delete (root);
-    }
-    return 0;
 }
